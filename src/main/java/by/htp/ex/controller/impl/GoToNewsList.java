@@ -15,23 +15,26 @@ import jakarta.servlet.http.HttpServletResponse;
 public class GoToNewsList implements Command {
 	
 	private final INewsService newsService = ServiceProvider.getInstance().getNewsService();
-	private static final String JSP_NEWS_PARAM = "news";
-	private static final String JSP_PRESENTATION_PARAM = "presentation";
-	private static final String JSP_NEWS_LIST_PARAM = "newsList";
-	
 	
 	@Override
 	public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+		List<News> newsList;
+		
+		request.getSession(true).setAttribute("link", "go_to_news_list");
+		
 		try {
-			List<News> newsList = newsService.list();
-			request.setAttribute(JSP_NEWS_PARAM, newsList);
-			request.setAttribute(JSP_PRESENTATION_PARAM, JSP_NEWS_LIST_PARAM);
+			newsList = newsService.list();
+			request.setAttribute("news", newsList);
+			request.setAttribute("presentation", "newsList");
+			//request.setAttribute("news", null);
+
+			request.getRequestDispatcher("WEB-INF/pages/layouts/baseLayout.jsp").forward(request, response);
+		} catch (ServiceException e) {
+			
+			request.setAttribute("error", "error");
 			request.getRequestDispatcher("WEB-INF/pages/layouts/baseLayout.jsp").forward(request, response);
 		}
-
-		catch (ServiceException e) {
-			e.printStackTrace();
-		}
+		
 	}
+
 }

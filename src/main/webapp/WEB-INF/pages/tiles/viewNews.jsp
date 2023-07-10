@@ -1,16 +1,29 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 
 <div class="body-title">
-	<a href="">News >> </a> View News
+	<!-- <a href="">News >> </a> View News   -->               
+	<a href="controller?command=go_to_news_list"> Back to news list</a>
 </div>
 
 <div class="add-table-margin">
 	<table class="news_text_format">
+		
 		<tr>
-			<td class="space_around_title_text">News Title</td>
+			
+			
+			<td class="space_around_title_text"> News id</td>
 
 			<td class="space_around_view_text"><div class="word-breaker">
-					<c:out value="${requestScope.news.title }" />
+				<h3><c:out value="${requestScope.news.idNews }" /> </h3>	
+				</div></td>
+		</tr>
+		
+		
+		<tr>
+			<td class="space_around_title_text"> News title</td>
+
+			<td class="space_around_view_text"><div class="word-breaker">
+				<h3><c:out value="${requestScope.news.title }" /> </h3>	
 				</div></td>
 		</tr>
 		<tr>
@@ -28,21 +41,43 @@
 		</tr>
 		<tr>
 			<td class="space_around_title_text">Content</td>
-			<td class="space_around_view_text"><div class="word-breaker">
+			<td class="space_around_view_text">
+			<div class="word-breaker">
 					<c:out value="${requestScope.news.content }" />
+				</div>
+				</td>
+		</tr>
+		
+		<tr>
+			<td class="space_around_title_text">Images</td>
+			<td >
+			<div >
+				<!-- <c:out value="${requestScope.news.imagePath}" /> -->	
+					<p> 
+					 <img alt="${requestScope.news.title}" src="${requestScope.news.imagePath}"> </p>
+				<!--  <img alt="news" src="${requestScope.news.imagePath}">-->	
+				
+				
 				</div></td>
 		</tr>
-		<tr> 
-		<td class="space_around_title_text">Images</td>
-		<td>
-		<div> 
-		<c:out value="${requestScope.news.imagePath}" />
-		<p>
-		<img alt="${requestScope.news.title}" src="${requestScope.news.imagePath}"> </p>
-		</div></td>
+			
+		<tr>
+			<td class="space_around_title_text">
+			
+			<a href="controller?command=go_to_news_list"> Back  to news list</a></td>
+			
+		</tr>
+		
+		
+
 		
 	</table>
+		
+		
+			
 </div>
+
+
 
 
 <c:if test="${sessionScope.role eq 'admin'}">

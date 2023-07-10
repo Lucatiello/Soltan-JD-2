@@ -11,25 +11,37 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public final class GoToViewNews implements Command {
+public class GoToViewNews implements Command {
+	
 	private final INewsService newsService = ServiceProvider.getInstance().getNewsService();
-	private static final String JSP_NEWS_PARAM = "news";
-	private static final String JSP_PRESENTATION_PARAM = "presentation";
-	private static final String JSP_VIEW_NEWS_PARAM = "newsList";
-	private static final String ID = "id";
-
+	
 	@Override
 	public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String id = request.getParameter(ID);
-		try {
-			News news  = newsService.findById(Integer.parseInt(id));
+		
+		News news;
+		String id;
 
-			request.setAttribute(JSP_NEWS_PARAM, news);
-			request.setAttribute(JSP_PRESENTATION_PARAM, JSP_VIEW_NEWS_PARAM);
+		
+		id = request.getParameter("id");
+		request.getSession(true).setAttribute("link", "go_to_view_news&id="+id);
+		try {
+			news  = newsService.findById(Integer.parseInt(id));
+			request.setAttribute("news", news);
+			request.setAttribute("presentation", "viewNews");
+
 			request.getRequestDispatcher("WEB-INF/pages/layouts/baseLayout.jsp").forward(request, response);
+			
+		} catch (ServiceException e) {
+			
+		
+			request.setAttribute("error", "error");
+			request.setAttribute("errorE", e.getMessage());
+		
+			request.getRequestDispatcher("/WEB-INF/pages/layouts/baseLayout.jsp").forward(request, response);
+			
+			
 		}
-		catch (ServiceException e) {
-			e.printStackTrace();
-		}
+		
 	}
+
 }

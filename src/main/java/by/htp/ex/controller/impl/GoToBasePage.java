@@ -15,18 +15,28 @@ import jakarta.servlet.http.HttpServletResponse;
 public class GoToBasePage implements Command{
 	
 	private final INewsService newsService = ServiceProvider.getInstance().getNewsService();
-    private static final String JSP_NEWS_PARAM = "news";
-    
+
 	@Override
 	public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
+		List<News> latestNews;
+			request.getSession(true).setAttribute("link", "go_to_base_page");
+			                                               
+		
 		try {
-			List<News> latestNews = newsService.latestList(5);
-			request.setAttribute(JSP_NEWS_PARAM, latestNews);
+			latestNews = newsService.latestList(5);
+			request.setAttribute("news2", "latestNews");
+			request.setAttribute("news", latestNews);
+			
+			//request.setAttribute("news", null);
+
 			request.getRequestDispatcher("WEB-INF/pages/layouts/baseLayout.jsp").forward(request, response);
+			
 		} catch (ServiceException e) {
-			// loggin - error
-			e.printStackTrace();
+			
+			
+			  request.setAttribute("error", e.getCause());
+			  System.out.println("Go to base page !! "+e.getMessage() + " ** cause ** " + e.getCause() + "--" + e.getLocalizedMessage());
 		}
 		
 		

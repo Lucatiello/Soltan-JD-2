@@ -1,115 +1,245 @@
 package by.htp.ex.dao.impl;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
 import by.htp.ex.bean.News;
 import by.htp.ex.dao.INewsDAO;
 import by.htp.ex.dao.NewsDAOException;
+import by.htp.ex.dao.conPool.ConnectionPool;
+import by.htp.ex.dao.conPool.ConnectionPoolException;
 
-public final class NewsDAO implements INewsDAO {
-	private static int ID = 0;
-	private final List<News> result = new ArrayList<>();
-
-	{
-		result.add(new News(++ID, "Лабрадор Ретривер: Красота в пушистом пакете", "\r\n"
-				+ "Лабрадор Ретривер - одна из самых красивых пород собак, которая не оставляет равнодушным никого. "
-				+ "Ее пушистая шерсть, мощная мускулатура и изящные линии тела привлекают внимание и вызывают восхищение у любителей собак."
-				+ "", "сontect", "06/06/23", "images/newsImages/labrador.jpg"));
-		result.add(new News(++ID, "Мейн-кун: Гигантская красота в коте", "Мейн-кун - порода кошек, которая привлекает внимание своими гигантскими размерами и невероятной красотой. "
-				+ "Они являются одной из крупнейших пород кошек, и могут весить более 10 кг! "
-				+ "Однако, несмотря на свои габариты, мейн-кунов называют добродушными гигантами, и это не преувеличение.", "contect2", "05/06/23", "images/newsImages/mainecoon.jpg"));
-		result.add(new News(++ID, "Зоопарки Беларуси: Удивительный мир дикой природы", 
-				"В Беларуси есть несколько зоопарков, которые удивляют своих посетителей разнообразием и количеством животных, а также высоким уровнем ухода за ними. "
-				+ "Белорусские зоопарки - это места, где можно увидеть множество различных видов животных, начиная от диких котов и заканчивая слонами и жирафами.", 
-				"contect3", "04/06/23", "images/newsImages/zoo.jpg"));
-		result.add(new News(++ID, "Секреты японской долголетности: Как жить до 100 лет", 
-				"Япония - одна из стран, где проживают больше всего людей старшего возраста. "
-				+ "Средняя продолжительность жизни в Японии составляет более 84 лет, а количество людей, доживших до 100 лет, постоянно растет. "
-				+ "Как же японцы добиваются такой долголетности? В этой статье мы рассмотрим несколько секретов японской долголетности.", "contect4", "03/06/23", "images/newsImages/durability.jpg"));
-		result.add(new News(++ID, "Путешествие во времени: Исторические достопримечательности Европы", 
-				"Европа - это место, где история глубоко пропитана в каждый уголок. "
-				+ "В этой статье мы предлагаем вам отправиться в путешествие во времени, чтобы увидеть некоторые из самых захватывающих исторических достопримечательностей Европы.", 
-				"contect5", "02/06/23", "images/newsImages/rome.jpg"));
-	}
-
+public class NewsDAO implements INewsDAO {
+	
+	private static final ConnectionPool poolNews = ConnectionPool.getInstance();
 
 	@Override
 	public List<News> getLatestsList(int count) throws NewsDAOException {
-		return result.stream().filter(news -> news.getIdNews() > result.size() - count).toList();
-	}
-
-	@Override
-	public List<News> getList() throws NewsDAOException {
 		List<News> result = new ArrayList<News>();
 
-		result.add(new News(1, "Лабрадор Ретривер: Красота в пушистом пакете", "\r\n"
-				+ "Лабрадор Ретривер - одна из самых красивых пород собак, которая не оставляет равнодушным никого. "
-				+ "Ее пушистая шерсть, мощная мускулатура и изящные линии тела привлекают внимание и вызывают восхищение у любителей собак."
-				+ "", "Лабрадоры могут быть разных цветов - от черного до шоколадного, золотистого и кремового, что делает их еще более привлекательными и уникальными.\r\n"
-						+ "\r\n"
-						+ "Кроме своей внешней красоты, лабрадоры также являются одной из самых дружелюбных и лояльных пород собак. "
-						+ "Они легко поддаются дрессировке и любят общаться с людьми. Лабрадоры известны своей добротой, отзывчивостью и чувством юмора, что делает их идеальными компаньонами для людей любого возраста и образа жизни.\r\n"
-						+ "\r\n"
-						+ "В целом, лабрадор Ретривер - это не только красивая, но и идеальная собака-компаньон, которая будет радовать своих владельцев своей красотой, лояльностью и дружелюбием.", 
-						"06/06/23", "images/newsImages/labrador.jpg"));
-		result.add(new News(2, "Мейн-кун: Гигантская красота в коте", "Мейн-кун - порода кошек, которая привлекает внимание своими гигантскими размерами и невероятной красотой. "
-				+ "Они являются одной из крупнейших пород кошек, и могут весить более 10 кг! "
-				+ "Однако, несмотря на свои габариты, мейн-кунов называют добродушными гигантами, и это не преувеличение.", 
-				"Мейн-кунов также описывают как дружелюбных, ласковых и лояльных кошек. "
-				+ "Они обладают терпением и добротой, и могут стать идеальными домашними животными для семьи с детьми. "
-				+ "Однако, несмотря на свою доброту, мейн-кунов нужно также правильно воспитывать и социализировать, чтобы они не склонялись к агрессивному поведению.\r\n"
-				+ "\r\n"
-				+ "В целом, мейн-кун - это не только красивая, но и очень добрая и лояльная кошка-компаньон, которая принесет много радости своим владельцам своей красотой и характером.", 
-				"05/06/23", "images/newsImages/mainecoon.jpg"));
-		result.add(new News(3, "Зоопарки Беларуси: Удивительный мир дикой природы", 
-				"В Беларуси есть несколько зоопарков, которые удивляют своих посетителей разнообразием и количеством животных, а также высоким уровнем ухода за ними. \"\r\n"
-				+ "				+ \"Белорусские зоопарки - это места, где можно увидеть множество различных видов животных, начиная от диких котов и заканчивая слонами и жирафами.", 
-				"Одним из самых популярных зоопарков в Беларуси является зоопарк \"Лесная сказка\" в городе Гомель. "
-				+ "Этот зоопарк представляет собой огромную территорию, на которой обитает более 300 видов животных со всего мира. "
-				+ "Посетители могут увидеть животных в их естественной среде обитания, поучаствовать в кормлении их, а также погулять по живописным тропинкам зоопарка.", 
-				"04/06/23", "images/newsImages/zoo.jpg"));
-		result.add(new News(4, "Секреты японской долголетности: Как жить до 100 лет", 
-				"Япония - одна из стран, где проживают больше всего людей старшего возраста. \"\r\n"
-				+ "				+ \"Средняя продолжительность жизни в Японии составляет более 84 лет, а количество людей, доживших до 100 лет, постоянно растет. \"\r\n"
-				+ "				+ \"Как же японцы добиваются такой долголетности? В этой статье мы рассмотрим несколько секретов японской долголетности.", 
-				"Один из секретов японской долголетности - это правильное питание. "
-				+ "Японцы употребляют много рыбы, овощей, риса и соевых продуктов, а также мало жирной и обжаренной пищи. "
-				+ "Они также следят за размерами порций, не переедают и не едят поздно вечером.\r\n"
-				+ "\r\n"
-				+ "Еще один секрет японской долголетности - это активный образ жизни. "
-				+ "Японцы увлекаются физическими упражнениями, такими как йога, тайцзицюань и другие виды гимнастики. "
-				+ "Они также предпочитают ходить пешком или ездить на велосипеде вместо того, чтобы использовать автомобиль или общественный транспорт.", 
-				"03/06/23", "images/newsImages/durability.jpg"));
-		result.add(new News(5, "Путешествие во времени: Исторические достопримечательности Европы", 
-				"Европа - это место, где история глубоко пропитана в каждый уголок. \"\r\n"
-				+ "				+ \"В этой статье мы предлагаем вам отправиться в путешествие во времени, чтобы увидеть некоторые из самых захватывающих исторических достопримечательностей Европы.", 
-				"Одним из самых знаменитых исторических мест в Европе является Колизей в Риме. "
-				+ "Этот амфитеатр был построен более 2000 лет назад и использовался для различных спектаклей, включая гладиаторские бои. "
-				+ "Сегодня Колизей является одной из самых популярных туристических достопримечательностей в Риме.\r\n"
-				+ "\r\n"
-				+ "Еще одним захватывающим местом в Европе является Акрополь в Афинах. "
-				+ "Эта древняя крепость была построена более 2500 лет назад и до сих пор поражает своей красотой и величием. "
-				+ "Акрополь - это место, где вы можете увидеть множество древних храмов, театров и других архитектурных шедевров.", 
-				"02/06/23", "images/newsImages/rome.jpg"));
+		Connection con = null;
+		Statement st = null;
+		ResultSet rs = null;
+		int i = 0;
+
+		try {
+//			con = DriverManager.getConnection(
+//					"jdbc:mysql://localhost:3306/db_trainingm?allowPublicKeyRetrieval=true&serverTimezone=UTC&useSSL=false",
+//					"root", "Artyom");
+			con = poolNews.takeConnection();
+			st = con.createStatement();
+         	rs = st.executeQuery("SELECT * FROM news ORDER BY news_date DESC");
+
+			while (rs.next() && i < count) {
+
+				i++;
+//			System.out.println(rs.getInt("id")+"  "+rs.getString("title") + " "+ rs.getString("brief_news") +
+//					rs.getString("content") + rs.getString("news_date")+  rs.getString("newscol"));
+
+				result.add(new News(rs.getInt("id"), rs.getString("title"), rs.getString("brief_news"),
+						rs.getString("content"), rs.getString("news_date"), rs.getString("newscol")));
+
+			}
+		} catch (SQLException e) {
+
+			throw new NewsDAOException("Bad connection with DB!");
+		} catch (ConnectionPoolException e) {
+			throw new NewsDAOException("Connection pool problem");
+		}
+
+		finally {
+			
+			poolNews.closeConnection(con, st, rs);
+
+//			try {
+//				if (rs != null) {
+//					rs.close();
+//				}
+//				
+//			} catch (SQLException e) {
+//				e.printStackTrace();
+//				
+//			}
+//			
+//			try {
+//				if (st != null) {
+//					st.close();
+//				}
+//				
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//			}
+//			
+//			
+//			try {
+//				if (con != null) {
+//					con.close();
+//				}
+//
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//			}
+		}
+
 
 		return result;
 	}
 
 	@Override
-	public News fetchById(int id) throws NewsDAOException {
-		return result.stream().filter(news -> news.getIdNews() == id).findAny().orElse(null);
+	public List<News> getList() throws NewsDAOException {
+		List<News> result = new ArrayList<News>();
+		Connection con = null;
+		Statement st = null;
+		ResultSet rs = null;
+
+		try {
+			
+			con = poolNews.takeConnection();
+//			con = DriverManager.getConnection(
+//					"jdbc:mysql://localhost:3306/db_trainingm?allowPublicKeyRetrieval=true&serverTimezone=UTC&useSSL=false",
+//					"root", "Irina1983");
+			st = con.createStatement();
+			rs = st.executeQuery("SELECT * FROM news ORDER BY news_date DESC");
+
+			while (rs.next()) {
+
+				result.add(new News(rs.getInt("id"), rs.getString("title"), rs.getString("brief_news"),
+						rs.getString("content"), rs.getString("news_date"), rs.getString("newscol")));
+
+			}
+		} catch (SQLException e) {
+
+			throw new NewsDAOException("Problem with DB");
+		} catch (ConnectionPoolException e) {
+			// TODO Auto-generated catch block
+			throw new NewsDAOException("Problem with connection pool");
+		}
+
+		finally {
+
+			poolNews.closeConnection(con, st, rs);
+//			try {
+//				if (rs != null) {
+//					rs.close();
+//				}
+//				
+//			} catch (SQLException e) {
+//				e.printStackTrace();
+//				
+//			}
+//			
+//			try {
+//				if (st != null) {
+//					st.close();
+//				}
+//				
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//			}
+//			
+//			
+//			try {
+//				if (con != null) {
+//					con.close();
+//				}
+//
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//			}
+		}
+
+
+
+		return result;
+	}
+
+	@Override
+	public News fetchById(int idNews) throws NewsDAOException {
+
+		News news = null;
+		Connection con = null;
+		Statement st = null;
+		ResultSet rs = null;
+
+		try {
+
+//			con = DriverManager.getConnection(
+//					"jdbc:mysql://localhost:3306/db_trainingm?allowPublicKeyRetrieval=true&serverTimezone=UTC&useSSL=false",
+//					"root", "Irina1983");
+			con = poolNews.takeConnection();
+			st = con.createStatement();
+			rs = st.executeQuery("SELECT * FROM news");
+			while (rs.next()) {
+				if (rs.getInt("id") == idNews) {
+					news = new News(rs.getInt("id"), rs.getString("title"), rs.getString("brief_news"),
+							rs.getString("content"), rs.getString("news_date"), rs.getString("newscol"));
+				}
+			}
+
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		finally {
+
+			poolNews.closeConnection(con, st, rs);
+//			try {
+//				if (rs != null) {
+//					rs.close();
+//				}
+//				
+//			} catch (SQLException e) {
+//				e.printStackTrace();
+//				
+//			}
+//			
+//			try {
+//				if (st != null) {
+//					st.close();
+//				}
+//				
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//			}
+//			
+//			
+//			try {
+//				if (con != null) {
+//					con.close();
+//				}
+//
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//			}
+		}
+		
+
+
+		return news;
+
 	}
 
 	@Override
 	public int addNews(News news) throws NewsDAOException {
+		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public void updateNews(News news) throws NewsDAOException {
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
 	public void deleteNewses(String[] idNewses) throws NewsDAOException {
+		// TODO Auto-generated method stub
+
 	}
+
 }

@@ -2,56 +2,74 @@ package by.htp.ex.controller.impl;
 
 import java.io.IOException;
 
+import javax.sound.midi.Soundbank;
+
+import org.mindrot.jbcrypt.BCrypt;
+
 import by.htp.ex.bean.NewUserInfo;
-import by.htp.ex.bean.Role;
 import by.htp.ex.controller.Command;
 import by.htp.ex.service.IUserService;
-import by.htp.ex.service.ServiceProvider;
 import by.htp.ex.service.ServiceException;
+import by.htp.ex.service.ServiceProvider;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public final class DoRegistration implements Command {
-	private static final String JSP_LOGIN_PARAM = "login";
-	private static final String JSP_EMAIL_PARAM = "email";
-	private static final String JSP_PASSWORD_PARAM = "password";
-	private static final String JSP_REGISTRATION_ERROR_PARAM = "RegistrationError";
-	private static final IUserService userService = ServiceProvider.getInstance().getUserService();
+public class DoRegistration implements Command {
+
+	private final IUserService userService = ServiceProvider.getInstance().getUserService();
+
+	private static final String JSP_NAME = "name";
+	private static final String JSP_SURNAME = "surname";
+	private static final String JSP_LOGIN = "login";
+	private static final String JSP_PASSWORD = "password";
+	private static final String JSP_EMIAL = "email";
 
 	@Override
 	public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		String login = request.getParameter(JSP_LOGIN_PARAM);
-		String email = request.getParameter(JSP_EMAIL_PARAM);
-		String password = request.getParameter(JSP_PASSWORD_PARAM);
+		String name;
+		String surname;
+		String login;
+		String password;
+		String email;
+		String role = "user";
 
-		request.getSession().removeAttribute(JSP_REGISTRATION_ERROR_PARAM);
+		name = request.getParameter(JSP_NAME);
+		surname = request.getParameter(JSP_SURNAME);
+		login = request.getParameter(JSP_LOGIN);
+	
+		
+		password = BCrypt.hashpw(request.getParameter(JSP_PASSWORD), BCrypt.gensalt());
+		
+		
+		email = request.getParameter(JSP_EMIAL);
 
-		if (dataValidator(login, email, password)){
-			request.getSession(true).setAttribute(JSP_REGISTRATION_ERROR_PARAM,
-					"Login/Email/Password error. The number of characters must not be less than 2");
+		NewUserInfo newUser = new NewUserInfo(name, surname, login, password, email, role);
 
-			response.sendRedirect("controller?command=go_to_registration_page");
-		}
+		try {
 
-		else {
-			NewUserInfo user = new NewUserInfo(
-					request.getParameter(JSP_LOGIN_PARAM),
-					request.getParameter(JSP_EMAIL_PARAM),
-					request.getParameter(JSP_PASSWORD_PARAM),
-					Role.USER);
-			try {
-				userService.registration(user);
+			if (userService.registration(newUser)) {
+
+				request.getSession(true).setAttribute("user2", "not visible");
+				request.getSession().setAttribute("welcome", "registered");
+				
+				response.sendRedirect("controller?command=go_to_registration_page");
+
+			} else {
+
 				response.sendRedirect("controller?command=go_to_base_page");
+
 			}
-			catch (ServiceException e) {
-				System.out.println(e.getMessage());
-			}
+
+		} catch (ServiceException e) {
+
+			request.setAttribute("error", "error");
+			request.setAttribute("errorE", e.getMessage());
+		
+			request.getRequestDispatcher("/WEB-INF/pages/layouts/baseLayout.jsp").forward(request, response);
 		}
+
 	}
 
-	public boolean dataValidator(String login, String email, String password){
-		return (login.length() < 2 || email.length() < 2 || password.length() < 2);
-	}
 }
